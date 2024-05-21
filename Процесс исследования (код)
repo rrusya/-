@@ -1,0 +1,634 @@
+# Импорт библиотек
+import networkx as nx
+import matplotlib.pyplot as plt
+from itertools import combinations
+import re
+import pandas as pd
+
+# Создание словаря со всеми данными 1 периода (для 2005-2009 гг)
+slovar = {'565': ['22_reg', '14_reg', '21_reg', '64_code', '47_code', '58_code', '60_st', '337d_obligations', 
+                  '104_obligations'],
+          
+         '659': ['32_reg', '58_code', '47_code', '57_code', '60_civil'],
+          
+         '780_o' : ['23_reg', '21_reg', '37_code', '47_code', '48_code', '58_code', '61_st', '60_st'],
+          
+         '835': ['36_reg', '23_reg', '35_reg', '19_reg', '46_reg', '7_reg', 
+                 '55_code', '47_code', '48_code', '58_code', '57_code', '54_code', '41_code', '61_st', 
+                 '60_st', '34_st', '57_st', '21_st', '64_st', '65_st', '337d_civil', '8_procedural'],
+          
+          '899' : ['47_code', '58_code', '61_st', '60_st', '57_st', '58_st', '70_fdc', 
+                   '13_fdc', '74_fdc', '79_fdc', '115_fdc', '124_fdc'],
+          
+          '944' : ['47_code', '58_code', '61_st', '60_st', '113_fdc', '70_fdc', '13_fdc', '74_fdc'],
+          
+         '955': ['12_reg', '19_reg', '26_reg', '47_code', '60_st', '61_st', '120_obligations', '164_obligations'],
+          
+          '957' : ['47_code', '57_code', '48_code', '51_code', '58_code', '57_st',
+                   '60_st', '16_st', '61_st', '59_st', '70_fdc', '16_fdc'],
+          
+          '1001' : ['47_code', '57_code', '58_code', '61_st', '60_st', '2_st', '13_st',
+                    '55_st', '57_st', '64_st', '62_st', '63_st', '70_fdc', '68_fdc', '4_fdc', 
+                    '1_fdc', '2_fdc', '57_fdc', '153_fdc', '116_fdc', '117_fdc', '100_fdc', '40_fdc'],
+          
+          '1008_ai' : ['58_code', '61_st', '60_st', '68_fdc', '94_fdc', '96_fdc'],
+          
+          '1008' : ['47_code', '57_code', '58_code', '64_code', '60_st', '61_st', '68_fdc',
+                    '16_fdc', '110_fdc', '151_fdc'],
+          
+         '1137' : ['14_reg', '23_reg', '26_reg', '21_reg', '51_code', 
+                   '47_code', '57_code', '58_code', '48_code', '56_code', '60_st', '61_st', '104_obligations'],
+          
+         '1141_o': ['21_reg', '23_reg', '47_code', '58_code', '37_code', '61_st', '60_st', '187_ldip'],
+          
+         '1141' : ['22_reg', '23_reg', '47_code', '57_code', '58_code', '48_code', '60_st', '61_st',
+                   '8_civil', '82_civil', '337c_obligations', '362_obligations', '104_obligations'],
+          
+          '1155' : ['57_code', '47_code', '48_code', '58_code', '54_code', '41_code', '60_st', 
+                    '61_st', '140_fdc', '141_fdc', '142_fdc', '143_fdc', '144_fdc', '145_fdc', '74_fdc'],
+          
+          '1204' : ['57_code', '47_code', '58_code', '60_st', '62_st', '61_st', '68_fdc', '110_fdc', '16_fdc'],
+          
+         '1251' : ['24_reg', '22_reg', '23_reg', '25_reg', '27_reg', 
+            '11 of annex 6_reg', '10 of annex 6_reg', '47_code', '58_code', '61_st', '60_st', '47_st', 
+                   '1_procedural', '3_procedural', '5_procedural', '9_procedural', '10_procedural',
+                   '11_procedural', '12_procedural', '13_procedural', '14_procedural'],
+          
+         '1271' : ['5_reg', '18_reg', '6_reg', '58_code', '64_code', '65_code', '60_st', 
+                   '62_st', '39_ectreaty', '187_ldip'],
+          
+         '1272' : ['5_reg', '18_reg', '6_reg', '58_code', '64_code', '65_code', '60_st', '62_st', 
+                   '39_ectreaty', '187_ldip'],
+          
+         '1273' : ['16_reg', '14_reg', '17_reg', '13_reg', '15_reg', 
+            '18_reg', '19_reg', '20_reg', 'annex 4_reg', '57_code', '58_code', '48_code', '61_st', '60_st',
+                   '81_ectreaty', '82_ectreaty', '5_competition', '7_competition', '27_civil', '60_civil',
+                   '75_civil', '187_pils', '190_pils', '48_collective', '3_procedural', 
+                   '23_procedural', '19_procedural', '18_procedural' ],
+          
+         '1287' : ['1_reg', '28_code', '27_code', '47_code', '57_code', '48_code', '58_code', '60_st', 
+                   '61_st', '2_st', '3_st', '81_ectreaty', '82_ectreaty', '1_civil',
+                   '19_ldip', '186_ldip', '176_ldip'],
+          
+          '1294' : ['48_code', '56_code', '44_code', '57_code', '47_code', '58_code', 
+                    '60_code', '61_st', '71_fdc'],
+          
+          '1301' : ['22_reg', '23_reg', '24_reg', '26_reg', 
+                    '17_reg', '57_code', '55_code', '47_code', '48_code', '58_code', 
+                    '60_st', '61_st', '62_st'],
+          
+          '1303' : ['57_code', '47_code', '58_code', '60_st', '61_st', '71_fdc', '15_fdc'],
+          
+          '1355' : ['24_reg', '47_code', '58_code', '57_code', '60_st', '59_st',
+                    '61_st', '60_civil', '68_fdc', '71_fdc', '4_fdc'],
+          
+          '1358' : ['25_reg', '17_reg', '23_reg', '12_reg', '43_reg',
+                    '18_reg', '26_reg', '57_code', '29_code', '44_code', '58_code', '61_st', 
+                    '60_st', '42_obligations', '42_fdc'],
+          
+          '1359' : ['25_reg', '17_reg', '23_reg', '12_reg', 
+                    '43_reg', '18_reg', '26_reg', '57_code', '29_code', '44_code', '58_code', '61_st', 
+                    '60_st', '42_obligations', '42_fdc'],
+          
+          '1404' : ['47_code', '57_code', '58_code', '57_st', '13_st', '2_st', '59_st', '60_st', 
+                    '60_civil', '68_fdc', '118_fdc', '101_fdc'],
+          
+          '1429' : ['17_reg', '18_reg', '2_reg', '47_code', '57_code', '58_code', '44_code', '60_st'],
+          
+          '1448' : ['17_reg', '13_reg', '26_reg', '64_code', '47_code', '58_code', '48_code', 
+                    '55_code', '56_code', '61_st', '60_st', '119_obligations', '82_obligations', 
+                    '18_obligations'],
+          
+          '1453' : ['8_reg', '17_reg', '47_code', '58_code', '48_code', '59_st', '61_st', '187_ldip'],
+          
+          '1485' : ['19_reg', '2_reg', '5_reg', '57_code', '47_code', '58_code', '48_code', '60_st', 
+                    '61_st', '12_charter', '60_civil', '187_pils'],
+          
+          '1519' : ['17_reg', '14_reg', '15_reg', '26_reg', '28_reg', '24_reg', 
+            '20_reg', '1 of Annexe 4_reg', 'annex 4_reg', '47_code', '57_code', '58_code', '48_code', 
+                    '61_st', '60_st', '44_obligations', '337c_obligations', '337d_obligations', 
+                    '99_obligations', '42_obligations',
+                    '104_obligations', '102_obligations', '339_obligations', '77_obligations'],
+          
+          '1548' : ['48_code', '57_code', '58_code', '47_code', '60_st', '61_st', '186_ldip', '71_fdc'],
+          
+          '1568' : ['17_reg', '2_reg', '24_reg', '22_reg', '13_reg', '14_reg', 
+            '15_reg', '16_reg', '18_reg', '1 of annex 4_reg', '47_code', '57_code', '58_code', '61_st', 
+                    '60_st', '42_obligations'],
+          
+          '1590' : ['47_code', '58_code', '61_st', '2_st', '143_fdc', '144_fdc', '145_fdc', 
+                    '146_fdc', '147_fdc', '49_fdc', 
+            '19_fdc', '34_fdc', '77_fdc', '33_fdc', '151_fdc'],
+          
+          '1593' : ['17_reg', '18_reg', '10_reg', '37_code', '47_code', '58_code', '60_st', 
+                    '61_st', '337c_obligations', '141_fdc', '144_fdc'],
+          
+          '1610' : ['58_code', '61_st', '71_fdc'], 
+          
+          '1621' : ['15_reg', '16_reg', '17_reg', '18_reg', '24_reg', '47_code', '58_code', '60_st', 
+                    '61_st', '7_cup2010', '18_obligations', '126_fdc', '130_fdc', '55_fdc',
+                    '125_fdc', '127_fdc'],
+          
+          '1622' : ['23_reg', '1 of Annexe 1_reg', '47_code', '27_code', '48_code', '58_code', '62_st', '60_civil', 
+                    '61_civil', '62_civil', '63_civil', '64_civil', '65_civil', '66_civil', '67_civil', 
+                    '68_civil', '69_civil', '70_civil', '71_civil', '73_civil', '74_civil', '75_civil', 
+                    '76_civil', '77_civil', '78_civil', '79_civil'],
+            
+          '1625' : ['58_code', '4_fdcr', '5_fdcr', '6_fdcr', '143_fdc', '144_fdc', '101_fdc', 'annex 3_fdc'],
+                    
+          '1658' : ['47_code', '58_code', '57_code', '60_st', '62_st', '61_st', '59_st', 
+                    '63_st', '71_fdc', '127(120)_fdc', '123(130)_fdc', '125_fdc', '86_fdc', 
+                    '126_fdc', '83_fdc', '119_fdc'],
+          
+          '1674_o' : ['17_reg', '47_code', '58_code', '61_st', '60_st', '190_pils'],
+          
+          '1674' : ['17_reg', '57_code', '47_code', '58_code', '61_st', '60_st'],
+          
+          '1691' : ['17_reg', '23_reg', '29_reg', '26_reg', '2 of annex 3_reg',
+            '5_reg', '9_reg', '1 of annex 3_reg', '54_code', '41_code', '47_code',
+                    '57_code', '58_code', '56_code', '48_code', '60_st', '61_st', '8_civil'],
+            
+            '1695' : ['27_code', '58_code', '31_st'],
+    
+           '1708' : ['47_code', '51_code', '56_code', '57_code', '58_code', '49_code', '41_code', 
+                     '60_st', '61_st', '68 (2008)_st', '186_pils', '15_procedural', '142_fdc'],
+          
+          '1741' : ['17_reg', '18_reg', '64_code', '44_code', '56_code', '47_code', '57_code',
+                    '58_code', '60_st', '62_st', '59_st', '8_civil'],
+          
+          '1881' : ['22_reg', '1_reg', '5_reg', '9_reg', '11_reg', '13_reg', 
+            '14_reg', '16_reg', '24_reg', 'annex 3_reg', '51_code', '55_code', '58_code', '47_code', 
+                    '60_st', '61_st', '64_st', '75_civil', '186_ldip', '176_ldip', '181_ldip', '190_ldip'],
+                    
+          '1909' : ['47_code', '48_code', '37_code', '60_st', '61_st']}
+
+
+# Создание словаря со всеми данными 2 периода (для 2020 - 2022 гг)
+slovar = {'6422' : ['24bis_reg', '47_code', '49_code', '57_code', '58_code', '57_st', '58_st', '102_obligations'],
+          
+          '6432' : ['1_reg', '2_reg', '5_reg', '9_reg', '11_reg', '18bis_reg', '19_reg', 
+                    '19bis_reg', 'annexe 2_reg', 'annexe 3_reg', 'annexe 3a_reg', '47_code', 
+                    '48_code', '51_code', '54_code', '55_code', '58_code', '2_st', 
+                    '13_st', '14_st', '57_st', '58_st', '6_echr', '10_fdc', '13_fdc', '14_fdc',
+                    '38_fdc', '55_fdc', '71_fdc'],
+          
+          '6508' : ['12bis_reg', '26_reg', '24bis_reg', '26bis_reg', '2_reg', '50_code', 
+                    '57_code', '47_code', '49_code', '58_st', '57_st', '8_civil', '161_obligations', 
+                    '102_obligations', '18_obligations', '160_obligations', '163_obligations',
+                    '103_obligations'],
+          
+          '6533' : ['17_reg', '14_reg', '25_reg', '13_reg','44_code', '57_code', '47_code', '48_code', 
+                    '52_code', '51_code', '54_code', '55_code', '49_code', '58_code', '57_st', '58_st',
+                   '60_civil', '2_civil', '77_civil', '361_obligations', '337c_obligations',
+                    '339_obligations', '102_obligations', '337_obligations', '108_obligations',
+                    '104_obligations', '12_procedural'],
+          
+          '6569' : ['22_reg', '17_reg', '8 of annexe 3_reg', '8_reg',
+                    '47_code', '48_code', '51_code', '55_code', '54_code', '59_st', '58_st', '18_obligations',
+                   '3_procedural'],
+          
+          '6665' : ['57_code', '47_code', '48_code', '64_code', '65_code', '49_code', 
+                    '58_code', '56_code', '44_code', '13_st', '58_st', '57_st', '147_scpc', '27_fce',
+                    '21_fce', '13_fce', '15_fce', '19_fce', '20_fce', '21(2012)_fce', 
+                    '30_fce', '42_fce', '7(2004)_fce', '49_fce', '46_fce', '47_fce', '2_fce',
+                    '3(2018)_fce', '11(2009)_fce', '12(2006)_fce', '48_fce', '8_civil', '176_pils', '186_pils', 
+                    '6_fdc'],
+          
+          '6669' : ['47_code', '48_code', '55_code', '44_code', '57_code', '49_code', '58_code',
+                    '56_code', '49_st', '57_st', '143_scpc', '149_scpc', '29_constitution', '156_ccp',
+                    '157_ccp', '2_penal', '7(2004)_fce', '11(2009)_fce', '13_fce', '15_fce', '17_fce', '18_fce', 
+                    '23_fce', '25_fce', '24(2012)_fce', '82(2019)_fce', '44_fce', '58(2019)_fce', '3(2019)_fce', 
+                    '11(2012)_fce', '18(2012)_fce', '49_fce', '48_fce', '2_fce', '18_admin', '6_echr', '1_echr',
+                   '184_pils', '182_pils', '6_fdc'],
+          
+          '6713' : ['47_code', '51_code', '55_code', '49_code', '48_code', '58_code', '58_st', '57_st', '176_pils',
+                    '186_pils', '64_fdc', '15(2019)_fdc'],
+          
+          '6745' : ['47_code', '48_code', '54_code', '5_code', '49_code', '58_code', '57_code', '58_st',
+                    '57_st', '3_civil', '64_fdc', '107_fdc', '15_fdc'],
+          
+          '6796_o' : ['2_reg', '37_code', '47_code', '48_code', '49_code', '51_code', '54_code', '58_st', 
+                      '186_pils' ],
+          
+          '6796' : ['2_reg', '17_reg', '47_code', '48_code', '49_code', '51_code', '54_code', 
+             '55_code', '56_code', '57_code', '58_code', '57_st', '58_st', '186_pils'],
+          
+          '6899' : ['6_reg', '14_reg', '15_reg', '17_reg', '22_reg', '33_code', '34_code', '44_code', 
+                    '47_code', '48_code', '51_code', '52_code', '54_code', '55_code', '56_code',
+                    '58_code', '58_st', '67_st'],
+          
+          '6912' : ['47_code', '49_code', '51_code', '54_code', '55_code', '58_code', '58_st', '57_st', 
+                    '9_constitution', '59_ccp', '60_civil', '52_fdc', '49_fdc', '15_fdc', '64_fdc', '107_fdc'], 
+          
+          '6921' : ['22_reg', '47_code', '48_code', '49_code', '51_code', '52_code', '55_code', '58_code',
+                    '10_st', '14_st', '15_st', '57_st', '58_st', '59_st', '4_interarbitr', '9_constitution',
+                    '89_ccp', '59_ccp', '60_civil', '176_pils', '186_pils', '187_pils', '27_fdc', '32_fdc',
+                    '51_fdc', '52_fdc', '108_fdc', '113_fdc', '128_fdc'], 
+          
+          '6933' : ['14_reg', '17_reg', '22_reg', '24_reg', '47_code', '48_code', '49_code',
+                    '51_code', '54_code55_code', '56_code', '57_code', '58_code', '57_st', '58_st', '9_procedural'], 
+          
+          '6941' : ['32_code', '47_code', '48_code', '51_code', '55_code', '57_code', 
+                    '58_code', '57_st', '58_st', '40_insolvency', '42_insolvency', '187_pils',
+                    '15_fdc', '64_fdc',  '147_fdc', '107_fdc'], 
+          
+          '6990' : ['13_reg', '17_reg', '22_reg', '23_reg','33_code', '34_code', '44_code', 
+                    '47_code', '48_code', '49_code', '50_code', '51_code', '53_code', '54_code',
+                    '55_code', '56_code', '57_code', '58_code',  '64_code', '57_st', '58_st', 
+                    '51_cfa', '52_cfa', '2_working', '4_working', '8_civil', '20_obligations',
+                    '18_obligations', '44_obligations', '163_obligations', '361_obligations',
+                    '362_obligations', '337c_obligations', '337_obligations', '5_pils', '178_pils', 
+                    '6_procedural'],
+          
+          '6991' : ['13_reg', '17_reg', '22_reg', '23_reg', '33_code', '34_code', '44_code',
+                    '47_code', '48_code', '49_code', '50_code', '51_code','53_code', '54_code',
+                    '55_code', '56_code', '57_code', '58_code', '64_code', '57_st', '58_st',
+                   '51_cfa', '52_cfa', '2_working', '4_working', '8_civil', '20_obligations',
+                    '18_obligations', '44_obligations', '163_obligations', '361_obligations',
+                    '362_obligations', '337c_obligations', '337_obligations', '5_pils', '178_pils',
+                   '6_procedural'],
+          
+          '6992' : ['13_reg', '17_reg', '22_reg', '23_reg', '33_code', '34_code', '44_code',
+                    '47_code', '48_code', '49_code', '50_code', '51_code','53_code', '54_code',
+                    '55_code', '56_code', '57_code', '58_code', '64_code', '57_st', '58_st',
+                    '51_cfa', '52_cfa', '2_working', '4_working', '8_civil', '20_obligations',
+                    '18_obligations', '44_obligations', '163_obligations', '361_obligations',
+                    '362_obligations', '337c_obligations', '337_obligations', '5_pils', '178_pils',
+                   '6_procedural'], 
+          
+          '6993' : ['13_reg', '17_reg', '22_reg', '23_reg', '33_code', '34_code', '44_code',
+                    '47_code', '48_code', '49_code', '50_code', '51_code','53_code', '54_code',
+                    '55_code', '56_code', '57_code', '58_code', '64_code', '57_st', '58_st', 
+                    '51_cfa', '52_cfa', '2_working', '4_working', '8_civil', '20_obligations',
+                    '18_obligations', '44_obligations', '163_obligations', '361_obligations',
+                    '362_obligations', '337c_obligations', '337_obligations', '5_pils', '178_pils', 
+                    '6_procedural'],
+          
+          '6994' : ['13_reg', '17_reg', '22_reg', '23_reg', '33_code', '34_code', '44_code',
+                    '47_code', '48_code', '49_code', '50_code', '51_code','53_code', '54_code',
+                    '55_code', '56_code', '57_code', '58_code', '64_code', '57_st', '58_st', 
+                    '51_cfa', '52_cfa', '2_working', '4_working', '8_civil', '20_obligations',
+                    '18_obligations', '44_obligations', '163_obligations', '361_obligations',
+                    '362_obligations', '337c_obligations', '337_obligations', '5_pils', '178_pils',
+                    '6_procedural'],
+          
+          '7008' : ['17_reg', '18bis_reg', '18ter_reg', '47_code', '48_code', '49_code', '50_code', 
+                    '51_code', '54_code', '58_code', '55_st', '57_st', '58_st', '27_constitution', 
+                    '2_civil', '19_obligations', '10_fdc', '13_fdc', '39_fdc'], 
+        
+          '7012' : ['17_reg', '47_code', '48_code', '49_code', '51_code', '54_code', '55_code', '57_code',
+                    '9_st', '57_st', '58_st', '104_civil', '18_obligations', '9_procedural'],
+          
+          '7030' : ['17_reg', '22_reg', '33_code', '34_code', '44_code', '47_code', '49_code',
+                    '51_code', '52_code', '54_code', '55_code', '57_code', '57_st', '58_st',
+                    '337b_obligations', '44_obligations'],
+          
+          '7092' : ['47_code', '48_code', '51_code', '55_code', '54_code', '58_code', '58_st', '57_st',
+                    '52_answer', '75_civil', '15_fdc', '58_fdc', '5_fdc'],
+          
+          '7252' : ['1 of annex 6_reg', '2 of annex 6_reg', '22_reg', '24_reg', '3 of annex 3_reg',
+                    '2 of annex 4_reg', '7 of annex 6_reg', '39_code', '41_code', '47_code', '48_code',
+                    '54_code', '55_code', '56_code', '58_code', '57_st', '58_st', '182_pils', '9_procedural',
+                    '9bis_procedural', '13(2021)_procedural', '13(2018)_procedural', '15_procedural',
+                    '16_procedural'],
+          
+          '7272' : ['10_reg', '17_reg', '18_reg', '18bis_reg', '22_reg', '3 of annexe 3_reg',  
+                    '9 of Annexe 3_reg', '32_code', '47_code', '48_code', '49_code', '51_code', '54_code', 
+                    '55_code', '58_code', '64_code', '65_code', '57_st', '58_st', '59_scpc', 
+                    '146_criminal', '8_civil', '1_obligations', '18_obligations', '20_obligations', 
+                    '151_obligations', '163_obligations'],
+          
+          '7290' : ['24bis_reg', '24ter_reg', '25_reg', '29_code', '44_code', '47_code', '48_code',
+                    '49_code', '51_code', '54_code', '55_code', '57_code', '58_code', '57_st', '58_st',
+                    '8_civil', '8_obligations', '31_obligations', '128_obligations', '135_obligations', 
+                    '137_obligations', '138_obligations', '160_obligations', '163_obligations',
+                    '337c_obligations', '6_procedural', '15_fdc'],
+          
+          '7341' : ['1_reg', '6_reg', '17_reg', '44_code', '47_code', '48_code', '49_code', '50_code', 
+                    '54_code', '57_code', '64_code', '57_st', '58_st', '8_civil', '337_obligations', 
+                    '337b_obligations', '337c_obligations'],
+          
+          '7342' : ['1_reg', '6_reg', '17_reg', '44_code', '47_code', '48_code', '49_code', '50_code', 
+                    '54_code', '57_code', '64_code', '57_st', '58_st', '8_civil', '337_obligations', 
+                    '337b_obligations', '337c_obligations'],
+          
+          '7346' : ['6_reg', '32_code', '47_code', '48_code', '50_code', '51_code', '54_code', '55_code', 
+                    '57_code', '49_code', '57_st', '58_st', '2_civil', '8_civil', '15_procedural',
+                    '15_fdc', '6_fdc', '3_fdc', '61_fdc', '36_fdc', '57_fdc', '49_fdc'], 
+          
+          '7369' : ['47_code', '48_code', '49_code', '51_code', '55_code', 
+                    '57_code', '58_code', '6_code', '58_st', '90_pils', '19_pils', '15_fdc',  '64_fdc'], 
+          
+          '7417' : ['18bis_reg', '4 of annexe 3_reg', '47_code', '48_code', '49_code', '51_code',
+                    '54_code', '55_code', '2_st', '57_st', '58_st', '27_civil', '60_civil', '6_fdc'],
+          
+          '7503' : ['12_reg', '19_reg', '44_code', '47_code', '49_code', '51_code', '54_code', '57_code',
+                    '58_code', '58_st' ],
+          
+          '7516' : ['1 of annex 6_reg', '2 of annex 6_reg',  '3  of annex 3_reg', '20_reg', '44_code',
+                    '47_code', '48_code', '54_code', '55_code', '57_code', '58_code', '57_st', '58_st', 
+                    '328_ccp', '186_pils', '9bis_procedural', '13(2021)_procedural', '16_procedural'],
+          
+          '7517' : ['1 of annex 6_reg', '2 of annex 6_reg', '3 of annex 3_reg', '20_reg', 'annex 4_reg',
+                    '44_code', '47_code', '48_code', '54_code', '55_code', '57_code', '58_code', '57_st',
+                    '58_st', '328_ccp', '186_pils', '9bis_procedural',
+                    '13(2021)_procedural', '16_procedural'],
+          
+          '7581' : ['17_reg', '22_reg', '24bis_reg', '47_code', '48_code', '51_code', '55_code', '33_code',
+                    '52_code', '53_code', '54_code', '57_code', '58_code', '57_st', '58_st', '60_civil',
+                    '337c_obligations', '3_procedural' ],
+          
+          '7605' : ['13_reg', '14_reg', '17_reg', '23_reg', '22_reg', '2_reg', '32_code', '47_code', 
+                    '48_code', '49_code', '51_code', '54_code', '55_code', '58_code', '57_st', '60_st',
+                    '58_st', '66_st', '60_civil', '2_obligations', '44_obligations', '337c_obligations',
+                   '186_pils', '187_pils', '3_procedural', '12_procedural'],
+          
+          '7685' : ['47_code', '48_code', '49_code', '51_code', '55_code', '58_code','57_st', '58_st',
+                    '72_fgr', '76_fgr', '116_fdc' ],
+          
+          '7689' : ['24bis_reg', '17_reg', '24_reg' '47_code', '48_code', '49_code',
+                    '51_code', '54_code', '55_code', '57_code', '58_code', '58_st', '8_civil'],
+          
+          '7915' : ['22_reg', '23_reg', '24ter_reg', '25_reg', '47_code', '49_code', '50_code', '51_code',
+                    '55_code', '57_code', '58_code', '57_st', '58_st', '175_obligations', '176_obligations',
+                    '177_obligations', '178_obligations','179_obligations', '180_obligations',
+                    '181_obligations', '182_obligations', '183_obligations', '186_pils', '9_pils',
+                    '178_ldip', '6_procedural', '9_procedural', '5_procedural', '15_fdc', '72_fdc' ],
+          
+          '8014' :['47_code', '48_code', '49_code', '51_code', '54_code', '55_code',
+                   '57_code', '58_code', '5_code', '8_st', '24_st', '53_st', '57_st', '58_st', '190_pils',
+                  '6_fdc', '15_fdc'],
+          
+          '8075' : ['47_code', '48_code', '49_code', '51_code', '52_code', '54_code', '55_code',
+                    '58_code', '2_st', '57_st', '58_st', '1_city', '6_nationality', '5_rgas', '7_rgas',
+                    '8_rgas', '9_rgas', '28_constitution', '28_civil'],
+          
+          '8076' : ['14_reg', '14bis_reg', '18bis_reg',  '4 of annex 3_reg', '3 of annex 3_reg', '47_code',
+                    '48_code', '49_code', '51_code', '58_code', '55_st', '56_st', '57_st', '27_constitution', 
+                    '75_civil', '19_obligations', '163_obligations', '156_obligations', '6_fdc', 
+                    '24_fdc', '39_fdc'],
+          
+          '8079' : ['14bis_reg', '17_reg', '22_reg', '24_reg', '44_code', '47_code', '48_code', '49_code',
+                    '51_code', '54_code', '55_code', '57_code', '58_code', '58_st', '8_model',
+                    '2_ny', '119_obligations', '186_pils', '12_procedural', '15_fdc'],
+          
+          '8296' : ['47_code', '48_code', '51_code', '55_code', '57_code', '58_code', '64_code', 
+                    '56_st', '58_st', '7_adr', '8_adr', '13_adr', '14(2012)_adr', '20(2012)_adr',
+                    '24_adr', '76(2021)_adr', '2_wadc', '10.5.3(2009)_wadc', '10.6.1(2015)_wadc',
+                    '10.7.1(2021)_wadc', '8_civil', '17_fdc'],
+          
+          '8306' : ['12bis_reg', '18bis_reg', '4 of annexe 3_reg', '24bis_reg', '24ter_reg', '4_code',
+                    '47_code', '48_code', '51_code', '54_code', '55_code', '57_code', '49_code',
+                    '58_code', '2_st', '58_st', '57_st', '60_civil', '18_obligations', '19_obligations',
+                    '20_obligations', '119_obligations', '151_obligations', '6_fdc'],
+          
+          '8308' : ['47_code', '48_code', '49_code', '50_code', '51_code',
+                    '55_code', '58_code', '56_st', '57_st', '15_fdc', '51_fdc', '57_fdc', 
+                    '58_fdc', '64_fdc'],
+          
+          '8708' : ['37_code', '47_code', '48_code', '49_code', '51_code', '55_code', '56_code', 
+                    '57_code', '58_code', '69_code', '2_st', '4_st', '13_st', '14_st', '15_st',
+                    '16_st', '17_st', '18_st', '19_st', '34_st', '38_st', '56_st',  '57_st', '69_st',
+                    '70_st', '31_cup2022', '4_cartel', '7_cartel', '28_civil', '60_civil', '69_civil', '75_civil']}
+
+# Наши ребра
+edges = [] 
+
+for lawsuit, art in slovar.items():
+        edges.extend(list(combinations(art, 2))) 
+                    
+
+# Рассчет веса ребер
+data_edges = {}
+
+for pair in set(edges):
+    
+    if pair[::-1] in data_edges:
+        pair = pair[::-1]
+        
+    data_edges[pair] = edges.count(pair) + edges.count(pair[::-1])
+
+# Создание графа
+our_graph = nx.Graph()
+
+for edge, w in data_edges.items():
+    our_graph.add_edge(edge[0], edge[1], weight = w)
+    
+print(our_graph)
+
+edge_widths = [w for (*edge, w) in our_graph.edges.data('weight')]
+
+# Визуализация
+fig = plt.figure(figsize=(80, 90))
+
+nx.draw_spring(
+    our_graph, 
+    with_labels=True, 
+    node_size=10000,  
+    node_color='yellow',
+    arrows=True,
+    width=edge_widths,
+    font_size= 13,
+    connectionstyle="arc3, rad=0.6",
+    edgecolors='black', 
+    linewidths=1
+)
+
+
+#Кто  в наших данных является лидером по количеству уникальных связей?
+d_v = sorted(nx.degree(our_graph), key=lambda x: x[1], reverse=True)[:10]
+print(d_v)
+
+# Визуализация графика лидеров уникальных связей для 1 периода (для 2005 - 2009 гг)
+top_d_v = [('58_code', 199), ('47_code', 181), 
+            ('61_st', 172), ('60_st', 168), ('57_code', 131), 
+            ('48_code', 119), ('23_reg', 84), ('17_reg', 79), ('62_st', 71), ('24_reg', 70)]
+article = []
+dg = []
+for blok in top_d_v:
+    
+    article.append(blok[0])
+    dg.append(blok[1])
+    
+plt.plot(dg, article, 'ro-')
+plt.figure()
+plt.savefig('degree_plot.png')
+plt.close()
+
+# Визуализация графика лидеров уникальных связей для 2 периода (для 2020 - 2022 гг)
+top_d_v = [('47_code', 276), ('58_code', 264), ('48_code', 259), ('57_st', 254), ('55_code', 251), 
+            ('58_st', 239), ('49_code', 231), ('51_code', 217), ('57_code', 210), ('54_code', 168)]
+article = []
+dg = []
+for blok in top_d_v:
+    
+    article.append(blok[0])
+    dg.append(blok[1])
+    
+plt.plot(dg, article, 'ro-')
+plt.figure()
+
+#для того, чтобы понять последние по степени
+d_v = sorted(nx.degree(our_graph))
+print(d_v)
+print(len(d_v))
+d_v = sorted(nx.degree(our_graph), key=lambda x: x[1], reverse=True)[:278]
+print(d_v)
+
+# Средний коэффициент кластеризации
+from networkx.algorithms import approximation
+approximation.average_clustering(our_graph, trials=1000, seed=10)
+
+# Центральности
+# Так как наш граф ненаправленный, мы можем проделать не так много всего.
+# Посчитаем 3 стандарные меры центральностей: betweenness, closeness, eigenvector
+# Betweenness centrality, или посредничество
+bet_centr = sorted(list(nx.betweenness_centrality(our_graph).items()), key=lambda i: i[1], reverse=True)
+print(*bet_centr[:10], sep='\n')
+plt.savefig('degree_plot.png')
+plt.close()
+
+# Визуализация графика лидеров по betwenness centrality для 1 периода (2005-2009 гг)
+top_bet_centr = [('58_code', 0.22097139266666016), ('47_code', 0.14814707277704178), 
+                ('61_st', 0.11785886009144088), ('60_st', 0.10898195493468507),
+                ('57_code', 0.051355698293722475), ('48_code', 0.04356807659356788),
+                ('23_reg', 0.022538789832717624), ('62_st', 0.01674457648761054),
+                ('17_reg', 0.011717158004005078), ('60_civil', 0.009987630472319608)]
+
+article_1 = []
+centr_1 = []
+for blok_1 in top_bet_centr:
+    article_1.append(blok_1[0])
+    centr_1.append(blok_1[1])
+
+plt.plot(centr_1, article_1, 'ro-')
+plt.figure()
+plt.savefig('bet_plot.png')
+plt.close()
+
+# Визуализация графика лидеров по betwenness centrality для 2 периода (2020-2022 гг)
+top_bet_centr = [('47_code', 0.10127775779678917), ('58_code', 0.08892595182151765), 
+                 ('48_code', 0.08553858787171718), ('57_st', 0.07985226184021492), 
+                 ('55_code', 0.07918777247712987), ('58_st', 0.07094073937113583), 
+                 ('49_code', 0.06261522494786288), ('51_code', 0.054786031923149285),
+                 ('57_code', 0.051308021988067935), ('54_code', 0.027647550831007825)]
+
+article_1 = []
+centr_1 = []
+for blok_1 in top_bet_centr:
+    article_1.append(blok_1[0])
+    centr_1.append(blok_1[1])
+
+plt.plot(centr_1, article_1, 'ro-')
+plt.figure()
+plt.savefig('bet_plot.png')
+plt.close()
+
+# Closeness centrality
+# Эта мера показывает, насколько узел близок ко всем остальным узлам в сети
+clo_centr = sorted(list(nx.closeness_centrality(our_graph).items()), key=lambda i: i[1], reverse=True)
+print(*clo_centr[:10], sep='\n')
+
+# Визуализация графика лидеров по closeness centrality для 1 периода (2005 - 2009 гг)
+top_clo_centr = [('58_code', 0.9901477832512315), ('47_code', 0.9095022624434389), 
+                 ('61_st', 0.8739130434782608), ('60_st', 0.8589743589743589), 
+                 ('57_code', 0.7416974169741697), ('48_code', 0.7102473498233216), 
+                 ('23_reg', 0.6320754716981132), ('17_reg', 0.6222910216718266), 
+                 ('62_st', 0.6072507552870091), ('24_reg', 0.6054216867469879)]
+
+article_2 = []
+centr_2 = []
+for blok_2 in top_clo_centr:
+    article_2.append(blok_2[0])
+    centr_2.append(blok_2[1])
+
+plt.plot(centr_2, article_2, 'ro-')
+plt.figure()
+plt.savefig('clo_plot.png')
+plt.close()
+
+# Визуализация графика лидеров по closeness centrality для 2 периода (2020-2022 гг)
+top_clo_centr = [('47_code', 0.9964028776978417), ('58_code', 0.9551724137931035),
+                 ('48_code', 0.9389830508474576), ('57_st', 0.9233333333333333), 
+                 ('55_code', 0.9141914191419142), ('58_st', 0.8793650793650793), 
+                 ('49_code', 0.8575851393188855), ('51_code', 0.8219584569732937),
+                 ('57_code', 0.8052325581395349), ('54_code', 0.7176165803108808)]
+
+article_2 = []
+centr_2 = []
+for blok_2 in top_clo_centr:
+    article_2.append(blok_2[0])
+    centr_2.append(blok_2[1])
+
+plt.plot(centr_2, article_2, 'ro-')
+plt.figure()
+plt.savefig('clo_plot.png')
+plt.close()
+
+# Eigenvector centrality
+# Эта мера показывает, насколько узел связан с узлами,которые сами имеют большое количество связей
+eig_centr = sorted(list(nx.eigenvector_centrality(our_graph).items()), key=lambda i: i[1], reverse=True)
+print(*eig_centr[:10], sep='\n')
+
+# Визуализация графика лидеров по eigenvecot centrality для 1 периода (2005 - 2009 гг)
+top_eig_centr = [('58_code', 0.2521276757273246), ('47_code', 0.23715068197349848), 
+                 ('61_st', 0.232514783211322), ('60_st', 0.23041659614948679),
+                 ('57_code', 0.20055844003081982), ('48_code', 0.1893548549591578), 
+                 ('17_reg', 0.14413880680750352), ('23_reg', 0.1351910416331177), 
+                 ('24_reg', 0.12960347752999526), ('14_reg', 0.1267036835179644)]
+
+article_3 = []
+centr_3 = []
+for blok_3 in top_clo_centr:
+    article_3.append(blok_3[0])
+    centr_3.append(blok_3[1])
+
+plt.plot(centr_3, article_3, 'ro-')
+plt.figure()
+plt.savefig('eig_plot.png')
+plt.close()
+
+# Визуализация графика лидеров по eigenvecot centrality для 2 периода (2020-2022 гг)
+top_eig_centr = [('47_code', 0.2051920060841176), ('58_code', 0.20016792446256665), 
+                 ('57_st', 0.19646519212633254), ('48_code', 0.19630843948265544),
+                 ('55_code', 0.19157563284013998), ('49_code', 0.18473687108427425),
+                 ('58_st', 0.18166266885839188), ('57_code', 0.171619442938806),
+                 ('51_code', 0.1668101936088469), ('54_code', 0.14114848271425168)]
+
+article_3 = []
+centr_3 = []
+for blok_3 in top_clo_centr:
+    article_3.append(blok_3[0])
+    centr_3.append(blok_3[1])
+
+plt.plot(centr_3, article_3, 'ro-')
+plt.figure()
+plt.savefig('eig_plot.png')
+plt.close()
+
+# Максимальные клики
+max_clique = sorted(nx.find_cliques(our_graph), key=len)[-1]
+
+# Изменение цвета для узлов, входящих в список максимальных клик
+node_colors = pd.DataFrame(our_graph.nodes, columns=['name'])
+node_colors['color'] = node_colors['name'].apply(lambda x: 'yellow' if x not in max_clique else '#f49b9b')
+node_colors = node_colors.set_index('name')
+node_colors.head(3)
+print(max_clique)
+
+
+# Выделение на графе другим цветом узлы из списка максимальных клик
+fig = plt.figure(figsize=(75, 65))
+
+nx.draw_spring(
+    our_graph, 
+    with_labels=True, 
+    node_size=15000,  
+    node_color=node_colors['color'],
+    arrows=True,
+    width=edge_widths,
+    font_size=12,
+    connectionstyle="arc3, rad=0.6",
+    edgecolors='black', 
+    linewidths=1
+)
