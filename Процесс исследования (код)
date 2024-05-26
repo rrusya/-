@@ -605,30 +605,3 @@ plt.plot(centr_3, article_3, 'ro-')
 plt.figure()
 plt.savefig('eig_plot.png')
 plt.close()
-
-# Максимальные клики
-max_clique = sorted(nx.find_cliques(our_graph), key=len)[-1]
-
-# Изменение цвета для узлов, входящих в список максимальных клик
-node_colors = pd.DataFrame(our_graph.nodes, columns=['name'])
-node_colors['color'] = node_colors['name'].apply(lambda x: 'yellow' if x not in max_clique else '#f49b9b')
-node_colors = node_colors.set_index('name')
-node_colors.head(3)
-print(max_clique)
-
-
-# Выделение на графе другим цветом узлы из списка максимальных клик
-fig = plt.figure(figsize=(75, 65))
-
-nx.draw_spring(
-    our_graph, 
-    with_labels=True, 
-    node_size=15000,  
-    node_color=node_colors['color'],
-    arrows=True,
-    width=edge_widths,
-    font_size=12,
-    connectionstyle="arc3, rad=0.6",
-    edgecolors='black', 
-    linewidths=1
-)
